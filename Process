@@ -1,0 +1,21 @@
+ Process Process = new Process();
+            try
+            {
+                Process.StartInfo.UseShellExecute = false;//启动可执行文件
+                //Process.StartInfo.CreateNoWindow = true;//是否显示窗口
+                Process.StartInfo.FileName = ConfigurationManager.Instance.AppSettings["AnacondaPath"];
+                var pythonEXEpath = ConfigurationManager.Instance.AppSettings["PythonPath"];
+                var modelpath = ConfigurationManager.Instance.AppSettings["PythonModelPath"];
+                var output = _sample.DataSource.DataPath + "\\BloodCells.txt";
+                var input = _sample.DataSource.DataPath + "\\HighCells";
+                Process.StartInfo.Arguments =
+                    $"{pythonEXEpath} -i {input}   -m {modelpath} -o {output}";//黑窗口命令参数
+                Process.Start();
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine(e.Message);
+            }
+            Process.WaitForExit();
+            Message = "Classification is completed";
+            return true;

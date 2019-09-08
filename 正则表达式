@@ -1,0 +1,65 @@
+IP地址：0-255.0-255.0-255.0-255
+
+^(2[0-4]\d  |  25[0-5]  |  [0-1]? \d? \d)  
+
+^((2[0-4]\d  |  25[0-5]  |  [0-1]? \d? \d) \.) {3}
+
+^( ( (2[0-4]\d  |  25[0-5]  |  [0-1]? \d? \d) \.) {3} (2[0-4]\d | 25[0-5] | [01]?\d?\d) ) )$
+
+正则表达式（RegularExpression），Regex类：
+基本元字符：
+.   匹配除换行符以外的任意字符
+\w    匹配字母、数字、下划线、汉字（指大小写字母、0-9的数字、下划线_）
+\W    \w的补集（除大小写字母、0-9的数字、下划线_之外）
+\s      匹配任意空白符 （包括换行符/n、回车符/r、制表符/t、垂直制表符/v、换页符/f）
+\S     \s的补集（除\s定义的字符之外）
+\d     匹配数字（0-9数字）
+\D     表示\d的补集（除0-9数字之外）
+{n}    匹配前面的字符n次
+{n,}   匹配前面的字符n次或多余n次
+{n,m} 匹配前面的字符n次到m次
+?        重复零次或一次
++       重复一次或更多次
+*        重复零次或更多次
+在正则表达式中，\是转义字符。*是元字符，如果要表示\.*字符的话，需要使用 \\   \.  \\*
+匹配：
+IsMatch(string input,string pattern) 是否匹配，返回bool
+Match(string input,string pattern) 静态方法,匹配指定字符串中的第一个匹配上的字符串
+Matches(string input,string pattern) 静态方法,匹配指定字符串中所有匹配上的字符串
+
+替换：
+Replace(string input,string pattern,string replacement) 将符合匹配的字符串替换
+
+string s="I am blue cat.";
+string res=Regex.Replace(s,"^","开始:")
+输出   开始：I am blue cat.
+拆分：
+string[] Split(string input,string pattern) 静态方法，将匹配的字符串来进行拆分
+
+利用正则表达式的匹配来截取：
+StreamReader sr = new StreamReader(@"E:\text.txt");
+            string line;
+            StreamWriter sw = null;
+            string filename;
+            string match = @"CBL-L-\d{3}";
+            while (!string.IsNullOrEmpty(line = sr.ReadLine()))
+            {
+                if (line.Substring(0, 3).Equals("1IY"))
+                {
+                    filename = Regex.Match(line, match).ToString().Substring(6);
+                    if (sw != null)
+                    {
+                        sw.Close();
+                    }
+                    string path = System.IO.Path.Combine(@"E:\测试", $"{filename}.txt");
+                    sw = new StreamWriter(path, true);//后面的bool  True表示文件不存在则创建，False则则不存在就是不存在
+                    sw.WriteLine(line);
+                }
+                else
+                {
+                    sw.WriteLine(line);
+
+                }
+            }
+            sw.Close();
+            sr.Close();

@@ -1,0 +1,40 @@
+    System.Windows.Forms.OpenFileDialog ofd = new System.Windows.Forms.OpenFileDialog(); //打开文件对话框
+    ofd.InitialDirectory = Path.Combine(s.DataSource.DataPath, "Cells"); //初始打开文件夹
+    ofd.Title = "请选择文件";
+    ofd.Filter = "图片(*.jpg)|*.jpg";
+    if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+    {
+      s.RegisterInformation.ImagePath2 = ofd.FileName;//选择的文件路径
+    }
+    
+    
+    //选择文件对话框
+    FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.ShowNewFolderButton = true;//是否显示新建文件按钮
+            try
+            {
+                if (string.IsNullOrEmpty(SampleDirectoryPath))
+                {
+                    fbd.SelectedPath = @"C:\";//初始路径
+                }
+                else
+                {
+                    fbd.SelectedPath = SampleDirectoryPath;
+                }
+            }
+            catch
+            {
+
+            }
+            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                SampleDirectoryPath = fbd.SelectedPath;
+                RaisePropertyChanged(nameof(SampleDirectoryPath));
+                if (SampleCodes.Count > 0) SampleCodes.Clear();
+                DirectoryInfo di = new DirectoryInfo(SampleDirectoryPath);
+                
+                foreach (var p in di.GetDirectories())
+                {
+                    SampleCodes.Add(p.Name);
+                }
+            }

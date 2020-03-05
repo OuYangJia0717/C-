@@ -1,0 +1,27 @@
+<!--链接字符串，test是SQL数据库，Oracle用户名是test-->
+    <add key="sql" value="data source=localhost;initial catalog=test;user id=sa;password=123456" />   
+    <add key="Conn" value="Data Source =(DESCRIPTION =(ADDRESS=(PROTOCOL=TCP)(HOST =localhost)(PORT=1521))(CONNECT_DATA=(SID =orcl)));Persist Security Info=True;User ID=test;Password=123456" />
+
+//Oracel数据库连接
+            OracleConnection conn = new OracleConnection();
+            string Conn = ConfigurationManager.AppSettings["Conn"];
+
+            //Sql server 数据库连接
+            string Sql = ConfigurationManager.AppSettings["sql"];
+            SqlConnection sql = new SqlConnection(Sql);
+
+            //Oracel数据查询数据
+            conn.ConnectionString = Conn;
+            conn.Open();
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "select * from classinfo";
+            cmd.CommandType = CommandType.Text;
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                //拿到Oracel数据的每一行写进Sql数据库中
+                var command = new SqlCommand($"insert into classinfo (classid,classname) values ({reader["classid"]},'{reader["classname"]}')", sql);
+                var dataadapter = new SqlDataAdapter(command);//Sql适配器
+                var dataset = new DataSet();
+                dataadapter.Fill(dataset);//填充数据进sql数据库中
+            }

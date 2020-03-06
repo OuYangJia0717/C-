@@ -1,0 +1,19 @@
+第一种方式：
+1.添加引用包，COM中搜索speech选择添加第二个
+SpVoice sp = new SpVoice();
+            sp.Rate = 1;//语速[-10,10]
+            sp.Volume = 70;//音量[0,100]
+            //var voices = sp.GetVoices().Item(0);
+
+            sp.Speak("欢迎欧耶");
+          
+第二种方式：
+1.添加引用包，程序集里面的System.Speech.Synthesis
+SpeechSynthesizer reader = new SpeechSynthesizer();
+            var voices = reader.GetInstalledVoices();//拿到声音的种类
+            //var voice = voices.First(v => v.VoiceInfo.Culture.Name.Contains("zh-CN"));//中文语言包
+            var voice = voices.First(v => v.VoiceInfo.Culture.Name.Contains("en-US"));//英文语言包
+            reader.SelectVoice(voice.VoiceInfo.Name);
+            reader.Volume = 70;
+            reader.Rate = 1;
+            reader.SpeakAsync("欢迎欧耶");//用异步的话，则保证程序不会没说完就退出了

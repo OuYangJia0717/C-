@@ -1,0 +1,216 @@
+//连接Ftp
+                    FtpWebRequest reqFTP;
+                    //创建文件夹
+                    string dir = "ftp://10.12.0.91/GM/" + $"{DateTime.Now.ToString("yyyy-MM-dd")}/";
+                    //创建当天日期文件夹
+                    try
+                    {
+                        ;
+                        FtpWebRequest req = (FtpWebRequest)WebRequest.Create(dir);
+                        req.Credentials = new NetworkCredential("pacsmodify", "pacsmodify2002");
+                        req.Method = WebRequestMethods.Ftp.MakeDirectory;
+                        FtpWebResponse response = (FtpWebResponse)req.GetResponse();
+                        response.Close();
+                    }
+                    catch
+                    {
+
+                    }
+
+                    //创建报告唯一存放路径
+                    string[] ss = new string[2];
+                    ss[0] = reportInDb.Code1 + "/";
+                    ss[1] = "ReportImage/";
+                    for (int i = 0; i < ss.Length; i++)
+                    {
+                        try 
+                        {
+                            dir = dir + ss[i];
+                            FtpWebRequest req = (FtpWebRequest)WebRequest.Create(dir);
+                            req.Credentials = new NetworkCredential("pacsmodify", "pacsmodify2002");
+                            req.Method = WebRequestMethods.Ftp.MakeDirectory;
+                            FtpWebResponse response = (FtpWebResponse)req.GetResponse();
+                            response.Close();
+                        }
+                        catch 
+                        {
+                        
+                        }
+                    }
+
+                    string reportpath = @"E:\baogao";//导出报告存放地址
+                    FileInfo fileInfo = new FileInfo($@"{reportpath}\{reportInDb.SampleCode}_{reportInDb.ReportType}.jpg");
+                    string picDir = dir + $"{reportInDb.SampleCode}_{reportInDb.ReportType}.jpg";
+
+                    string xpath = "ftp://10.12.0.91";
+                    reqFTP = (FtpWebRequest)FtpWebRequest.Create(picDir);
+                    reqFTP.Credentials = new NetworkCredential("pacsmodify", "pacsmodify2002");
+                    reqFTP.KeepAlive = false;
+                    reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
+                    reqFTP.UseBinary = true;
+                    reqFTP.UsePassive = false;
+                    reqFTP.ContentLength = fileInfo.Length;
+                    int BufferSize = 2048;
+                    byte[] buff = new byte[BufferSize];
+                    int ContentLength;
+                    FileStream fs = fileInfo.OpenRead();
+                    try
+                    {
+                        var strm = reqFTP.GetRequestStream();
+                        ContentLength = fs.Read(buff, 0, BufferSize);
+                        while (ContentLength != 0)
+                        {
+                            strm.Write(buff, 0, ContentLength);
+                            ContentLength = fs.Read(buff, 0, BufferSize);
+                        }
+                        strm.Close();
+                        fs.Close();
+
+                        //生成Xml文件
+                        XmlDocument xml = new XmlDocument();
+                        xml.Load(Environment.CurrentDirectory + "/test.xml");
+                        XmlNode nodes = xml.SelectSingleNode("XmlDocument/Header");
+                        XmlNodeList nodelist = nodes.ChildNodes;
+                        //头部添加时间
+                        foreach (XmlNode node in nodelist)
+                        {
+                            if (node.Name.Equals("CreateTime"))
+                                node.InnerText = string.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
+                        }
+                        //事件添加
+                        nodes = xml.SelectSingleNode("XmlDocument/Event");
+                        nodelist = nodes.ChildNodes;
+                        foreach (XmlNode node in nodelist)
+                        {
+                            if (node.Name.Equals("UniqueID"))
+                                node.InnerText = reportInDb.Barcode;
+                        }
+                        //病人添加
+                        nodes = xml.SelectSingleNode("XmlDocument/Patient");
+                        nodelist = nodes.ChildNodes;
+                        foreach (XmlNode node in nodelist)
+                        {
+                            if (node.Name.Equals("SickNo"))
+                                node.InnerText = reportInDb.Code1;
+                            else if (node.Name.Equals("InPatientNo"))
+                                node.InnerText = reportInDb.HospitalizationCode;
+                            else if (node.Name.Equals("BedNo"))
+                                node.InnerText = reportInDb.BedCode;
+                            else if (node.Name.Equals("OutPatientNo"))
+                                node.InnerText = reportInDb.ClinicCode;
+                            else if (node.Name.Equals("PatientName"))
+                                node.InnerText = reportInDb.Name;
+                            else if (node.Name.Equals("Phoneticize"))
+                                node.InnerText = reportInDb.NameForSearch;
+                            else if (node.Name.Equals("Sex"))
+                                node.InnerText = reportInDb.Gender;
+                            else if (node.Name.Equals("Age"))
+                                node.InnerText = reportInDb.Age.ToString();
+                            else if (node.Name.Equals("Address"))
+                                node.InnerText = reportInDb.Address;
+                            else if (node.Name.Equals("PhoneNumber"))
+                                node.InnerText = reportInDb.Phone;
+                        }
+                        //检查添加
+                        nodes = xml.SelectSingleNode("XmlDocument/Exam");
+                        nodelist = nodes.ChildNodes;
+                        foreach (XmlNode node in nodelist)
+                        {
+                            if (node.Name.Equals("HospitalName "))
+                                node.InnerText = reportInDb.Hospital;
+                            else if (node.Name.Equals("ApplyNo"))
+                                node.InnerText = reportInDb.Code2;
+                            else if (node.Name.Equals("PatientID"))
+                                node.InnerText = reportInDb.Code1;
+                            else if (node.Name.Equals("OutRegNo"))
+                                node.InnerText = reportInDb.SampleCode;
+                            else if (node.Name.Equals("ExamTime"))
+                                node.InnerText = string.Format("{0:yyyy-MM-dd HH:mm:ss}", reportInDb.DiagnosedOn);
+                            else if (node.Name.Equals("PerformDept"))
+                                node.InnerText = reportInDb.Department;
+                            else if (node.Name.Equals("ReqHospital"))
+                                node.InnerText = reportInDb.Hospital;
+                            else if (node.Name.Equals("ReqDept"))
+                                node.InnerText = reportInDb.Department;
+                            else if (node.Name.Equals("ReqPhysician"))
+                                node.InnerText = reportInDb.Doctor;
+                            else if (node.Name.Equals("ReqTime"))
+                                node.InnerText = string.Format("{0:yyyy-MM-dd HH:mm:ss}", reportInDb.CreatedOn);
+                            else if (node.Name.Equals("ClinSymp"))
+                                node.InnerText = reportInDb.DnaDiagnosisOpinion;
+                            else if (node.Name.Equals("ClinDiag"))
+                                node.InnerText = reportInDb.DiagnosisSuggestion;
+                        }
+                        //报告添加
+                        nodes = xml.SelectSingleNode("XmlDocument/Report");
+                        nodelist = nodes.ChildNodes;
+                        foreach (XmlNode node in nodelist)
+                        {
+                            if (node.Name.Equals("PatientID"))
+                                node.InnerText = $"{ reportInDb.SampleCode}_{ reportInDb.ReportType}";
+                            else if (node.Name.Equals("Recommendation "))
+                                node.InnerText = reportInDb.DiagnosisSuggestion;
+                            //else if (node.Name.Equals("AbNormalFlag"))
+                            //    node.InnerText = " 0为阴性；1为阳性 ";
+                            else if (node.Name.Equals("Reporter"))
+                                node.InnerText = reportInDb.Doctor;
+                            else if (node.Name.Equals("MasterTime"))
+                                node.InnerText = string.Format("{0:yyyy-MM-dd HH:mm:ss}", reportInDb.DiagnosedOn);
+                            else if (node.Name.Equals("PrintTime"))
+                                node.InnerText = string.Format("{0:yyyy-MM-dd HH:mm:ss}", reportInDb.PrintedOn);
+                            else if (node.Name.Equals("ReportImageArray"))//图片信息
+                            {
+                                var l = node.FirstChild.ChildNodes;
+                                foreach (XmlNode n in l)
+                                {
+                                    if (n.Name.Equals("Path"))
+                                        n.InnerText = picDir.Replace("ftp://10.12.0.91/", "") ;
+                                    else if (n.Name.Equals("Pos"))
+                                        n.InnerText = reportInDb.SampleType;
+                                    else if (n.Name.Equals("Desc"))
+                                        n.InnerText = reportInDb.DnaDiagnosisOpinion;
+                                }
+                            }
+                        }
+                        ////Study添加
+                        //nodes = xml.SelectSingleNode("XmlDocument/Study");
+                        //nodelist = nodes.ChildNodes;
+                        //foreach (XmlNode node in nodelist)
+                        //{
+                        //    if (node.Name.Equals("Path"))
+                        //        node.InnerText = xpath;
+                        //}
+                        xml.Save(Environment.CurrentDirectory + "/test1.xml");
+                        ////上传完成 调用接口
+                        WSDLService.servicePortTypeClient wsdl = new WSDLService.servicePortTypeClient();
+                        string result = wsdl.pacsDataImport(xml.InnerXml);
+                        XmlDocument rxml = new XmlDocument();
+                        rxml.LoadXml(result);
+                        nodes = rxml.SelectSingleNode("respone/code");
+                        if (nodes.InnerText.Equals("0"))
+                        {
+                            context.SaveChanges();
+
+                            View.RunInDispatcherThread(() =>
+                            {
+                                Parent.LoadCachedItems();
+                            });
+                            return true;
+                        }
+                        else
+                        {
+                            nodes = rxml.SelectSingleNode("respone/desc");
+                            MessageBox.Show(nodes.InnerText);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+
+                    View.RunInDispatcherThread(() =>
+                    {
+                        Parent.LoadCachedItems();
+                    });
+                    return true;
+                }

@@ -1,0 +1,49 @@
+1.NuGet 引用MySql.Data.Entity
+2.配置文件
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<configSections>
+		<!-- For more information on Entity Framework configuration, visit http://go.microsoft.com/fwlink/?LinkID=237468 -->
+		<section name="entityFramework" type="System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+	</configSections>
+	<connectionStrings>
+		<add name="MySqlConn" providerName="MySql.Data.MySqlClient" connectionString="data source=127.0.0.1;database=Users; uid=root;pwd=;charset=utf8;Connect Timeout=100;" />
+	</connectionStrings>
+	<startup>
+		<supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.7.2" />
+	</startup>
+	<entityFramework>
+		<defaultConnectionFactory type="System.Data.Entity.Infrastructure.LocalDbConnectionFactory, EntityFramework">
+			<parameters>
+				<parameter value="mssqllocaldb" />
+			</parameters>
+		</defaultConnectionFactory>
+		<providers>
+			<provider invariantName="System.Data.SqlClient" type="System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer" />
+			<provider invariantName="MySql.Data.MySqlClient" type="MySql.Data.MySqlClient.MySqlProviderServices, MySql.Data.Entity.EF6, Version=6.10.9.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d">
+			</provider>
+		</providers>
+	</entityFramework>
+	<system.data>
+		<DbProviderFactories>
+			<remove invariant="MySql.Data.MySqlClient"/>
+			<add name="MySQL Data Provider" invariant="MySql.Data.MySqlClient" description=".Net Framework Data Provider for MySQL" type="MySql.Data.MySqlClient.MySqlClientFactory,MySql.Data" />
+		</DbProviderFactories>
+	</system.data>
+</configuration>
+
+3.添加数据库操作类
+public class Test:DbContext
+    {
+        public Test() : base("name=MySqlConn") 
+        {
+        
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>().ToTable("User").HasKey(p => p.ID);   //实体映射表
+        }
+
+        public virtual DbSet<User> Users { get; set; }
+    }

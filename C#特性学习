@@ -1,0 +1,63 @@
+
+-------------------1.首先创建自定义特性类以及测试类---------------------
+/// <summary>
+    /// 自定义特性
+    /// 功能：年龄限制的特性 
+    /// 第一：必须是一个类
+    /// 第二：它必须继承Attribute【间接】
+    /// 第三:必须有符合业务需求的功能（就是内部的一些方法）
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]   //只作用与类、方法
+    public class AttributeDefineDemo:Attribute
+    {
+        public int Age;
+
+        public AttributeDefineDemo(int age) 
+        {
+            Age = age;
+        }
+
+        public bool IsAge() 
+        {
+            return Age >= 18 ? true : false ;
+        }
+
+    }
+
+    [AttributeDefineDemo(15)]
+    public class AttributeDefineExample 
+    {
+        [AttributeDefineDemo(15)]
+        public void Show() 
+        {
+            Console.WriteLine("年龄合法，执行通过");
+        }
+    }
+    
+    -------------------2.测试使用特性---------------------
+    
+    //--------------自定义特性学习-------------------
+            AttributeDefineExample example = new AttributeDefineExample();
+
+            Type type = example.GetType();
+            ////特性在类上是否有效
+            //if (type.IsDefined(typeof(AttributeDefineDemo),true)) 
+            //{
+            //    var attribute = type.GetCustomAttribute<AttributeDefineDemo>();
+
+            //    if (attribute.IsAge()) 
+            //    {
+            //        example.Show();
+            //    }
+            //}
+
+            //特性在方法上是否有效
+            MethodInfo method = type.GetMethod("show");
+            if (method.IsDefined(typeof(AttributeDefineDemo),true)) 
+            {
+                var attribute = method.GetCustomAttribute<AttributeDefineDemo>();
+                if (attribute.IsAge())
+                {
+                    example.Show();
+                }
+            }

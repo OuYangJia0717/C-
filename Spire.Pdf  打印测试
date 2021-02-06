@@ -1,0 +1,42 @@
+string directory = System.IO.Directory.GetCurrentDirectory() + "\\Report_PDF";
+            foreach (var f in Directory.GetFiles(directory))
+            {
+
+                string pageSize = f.Contains("2.pdf") ? "A4" : "A5";   //尺寸大小
+
+                PdfDocument doc = new PdfDocument();          
+                doc.LoadFromFile(f);
+
+                //设置打印的起始页码
+                doc.PrintFromPage = 1;
+
+                //设置打印的终止页码
+                doc.PrintToPage = doc.Pages.Count;
+
+                //doc.PageSettings.Size = f.Contains("2.pdf") ? PdfPageSize.A4 : PdfPageSize.A5;
+                //选择打印机
+                doc.PrinterName = "HP LaserJet Pro M402-M403 PCL 6";  //打印机名称
+
+
+                PrintDocument printDoc = doc.PrintDocument;
+
+                foreach (PaperSize ps in printDoc.PrinterSettings.PaperSizes)
+                {
+                    if (ps.PaperName.Equals(pageSize.ToUpper()))
+                    {
+                        printDoc.DefaultPageSettings.PaperSize = ps;
+
+                        Console.WriteLine(f + "PaperSize: " + pageSize);
+                        break;
+                    }
+                }
+
+                printDoc.PrintController = new StandardPrintController();
+
+                
+                Console.WriteLine(f + "开始打印!");
+                printDoc.Print();
+                Console.WriteLine(f + "完成打印!");
+                };
+
+            Console.ReadKey();
